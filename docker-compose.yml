@@ -3,3 +3,5 @@ version: '3'
 services:
   subito:
     build: .
+    environment:
+      PUSHBULLET_API_KEY: ${PUSHBULLET_API_KEY}

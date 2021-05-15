@@ -1,17 +1,18 @@
-import requests
+import logging
 import os
+import requests
+import schedule
+import time
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 from announcer import Announcer
 from pushbullet import Pushbullet
 
+logging.basicConfig(level=logging.INFO)
 BASE_URL='https://www.subito.it/annunci-italia/vendita/informatica/'
 SEARCH='gtx 1050 ti'
 MIN_PRICE=100
 MAX_PRICE=200
 QUERY_STRING=f'{BASE_URL}?q={"+".join(SEARCH.split())}&ps={MIN_PRICE}&pe={MAX_PRICE}'
-
-load_dotenv()
 
 def get_all_ads_page():
     r = requests.get(QUERY_STRING)
@@ -39,7 +40,9 @@ def parse_ads(text):
     return [parse_item(i) for i in items]
 
 def main():
+    # Setup
     pb = Pushbullet(os.getenv('PUSHBULLET_API_KEY'))
+    logging.info('Connected to Pushbullet successfully.')
     def on_new(items):
         for title, city, prov, link, price, when, ships in items:
             message_body = (
@@ -49,17 +52,35 @@ def main():
                 link
             )
             pb.push_note('Found new item', '\n'.join([s for s in message_body if s]))
+            logging.info('Pushed notification!')
 
-    try:
-        html = get_all_ads_page()
-        items = parse_ads(html)
-        announcer = Announcer(
-            on_new=on_new, 
-            initial=items[1:],
-        )
-        announcer.submit(items)
-    except ConnectionError as err:
-        print('Could\'t fetch ads.')
+    html = get_all_ads_page()
+    items = parse_ads(html)
+    
+    announcer = Announcer(
+        on_new=on_new, 
+        initial=items,
+    )
+
+    def job():
+        logging.debug('Running main job.')
+        try:
+            logging.debug('Fetching ads...')
+            html = get_all_ads_page()
+            logging.info('Fetched ads successfully.')
+            items = parse_ads(html)
+            announcer.submit(items)
+        except ConnectionError:
+            logging.warning('Couldn\' fetch ads.')
+    
+    # Configure scheduler
+    logging.debug('Configuring scheduler')
+    schedule.every().minute.do(job)
+    logging.info('Entering main loop')
+    # Loop 
+    while(True):
+        schedule.run_pending()
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()

@@ -5,7 +5,6 @@ name = "pypi"
 
 [packages]
 bs4 = "*"
-python-dotenv = "*"
 "pushbullet.py" = "*"
 schedule = "*"
 

@@ -9,9 +9,10 @@ from pushbullet import Pushbullet
 
 logging.basicConfig(level=logging.INFO)
 BASE_URL='https://www.subito.it/annunci-italia/vendita/informatica/'
-SEARCH='gtx 1050 ti'
+NUMBER='970'
+SEARCH=f'gtx {NUMBER}'
 MIN_PRICE=100
-MAX_PRICE=200
+MAX_PRICE=250
 QUERY_STRING=f'{BASE_URL}?q={"+".join(SEARCH.split())}&ps={MIN_PRICE}&pe={MAX_PRICE}'
 
 def get_all_ads_page():
@@ -37,7 +38,7 @@ def parse_item(item_html):
 def parse_ads(text):
     soup = BeautifulSoup(text, 'html.parser')
     items = soup.select_one('div.items.visible').find_all('div', class_='items__item', id=False)
-    return [parse_item(i) for i in items]
+    return [parse_item(i) for i in items if NUMBER in parse_item(i)[0]]
 
 def main():
     # Setup

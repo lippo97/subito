@@ -8,6 +8,6 @@ COPY Pipfile .
 RUN pip install pipenv
 RUN pipenv install --system --deploy --ignore-pipfile
 
-COPY *.py .
+COPY *.py ./
 
 CMD ["python", "./main.py"]

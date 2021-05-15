@@ -67,7 +67,7 @@ def main():
         try:
             logging.debug('Fetching ads...')
             html = get_all_ads_page()
-            logging.info('Fetched ads successfully.')
+            logging.debug('Fetched ads successfully.')
             items = parse_ads(html)
             announcer.submit(items)
         except ConnectionError:

@@ -5,7 +5,8 @@ WORKDIR /usr/src/app
 COPY Pipfile.lock .
 COPY Pipfile .
 
-RUN pip install --system --deploy --ignore-pipfile
+RUN pip install pipenv
+RUN pipenv install --system --deploy --ignore-pipfile
 
 COPY *.py .
 

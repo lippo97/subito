@@ -78,6 +78,7 @@ def main():
     logging.debug('Configuring scheduler')
     schedule.every().minute.do(job)
     logging.info('Entering main loop')
+    logging.info(f'Looking for {SEARCH}')
     # Loop 
     while(True):
         schedule.run_pending()

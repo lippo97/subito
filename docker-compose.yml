@@ -5,3 +5,4 @@ services:
     build: .
     environment:
       PUSHBULLET_API_KEY: ${PUSHBULLET_API_KEY}
+    restart: unless-stopped

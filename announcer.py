@@ -13,7 +13,7 @@ class Announcer():
         new_items = self._new_items(update)
         if new_items:
             self._replace_old(update)
-            self._on_new(new_items)
+            self._on_new(new_items, update)
 
     def _new_items(self, update):
         slice_index = 0

@@ -1,22 +1,32 @@
+import ast
 import logging
 import os
 import requests
 import schedule
 import time
+from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 from announcer import Announcer
 from pushbullet import Pushbullet
 
-logging.basicConfig(level=logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format=formatter)
+logging.root.handlers[0].setFormatter(formatter)
+
+
 BASE_URL='https://www.subito.it/annunci-italia/vendita/informatica/'
 NUMBER='970'
 SEARCH=f'gtx {NUMBER}'
 MIN_PRICE=100
 MAX_PRICE=250
 QUERY_STRING=f'{BASE_URL}?q={"+".join(SEARCH.split())}&ps={MIN_PRICE}&pe={MAX_PRICE}'
+OLD_FILE='OLD'
+
+s = requests.Session()
+s.mount('https://', HTTPAdapter(max_retries=0))
 
 def get_all_ads_page():
-    r = requests.get(QUERY_STRING)
+    r = s.get(QUERY_STRING)
     if (r.status_code == 200):
         return r.text
     raise ConnectionError(r.status_code)
@@ -44,7 +54,8 @@ def main():
     # Setup
     pb = Pushbullet(os.getenv('PUSHBULLET_API_KEY'))
     logging.info('Connected to Pushbullet successfully.')
-    def on_new(items):
+
+    def on_new(items, old):
         for title, city, prov, link, price, when, ships in items:
             message_body = (
                 f'{title} at {price}€ in {city} {prov}.',
@@ -54,13 +65,26 @@ def main():
             )
             pb.push_note('Found new item', '\n'.join([s for s in message_body if s]))
             logging.info('Pushed notification!')
+            try:
+                with open(OLD_FILE, 'w') as f:
+                    f.write(repr(old))
+            except IOError as err:
+                logging.error(err)
 
-    html = get_all_ads_page()
-    items = parse_ads(html)
+    try:
+        with open(OLD_FILE, 'r') as f:
+            items = ast.literal_eval(f.read())
+        logging.info('Old file loaded succesfully.')
+    except IOError as err:
+        logging.warning(err)
+        logging.info('Couldn\'t load old file, fetching current ads...')
+        html = get_all_ads_page()
+        items = parse_ads(html)
+        logging.info('Done.')
     
     announcer = Announcer(
         on_new=on_new, 
-        initial=items,
+        initial=items[:],
     )
 
     def job():
@@ -73,6 +97,8 @@ def main():
             announcer.submit(items)
         except ConnectionError:
             logging.warning('Couldn\' fetch ads.')
+        except Exception as err:
+            logging.error(err)
     
     # Configure scheduler
     logging.debug('Configuring scheduler')

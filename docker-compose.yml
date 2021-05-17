@@ -5,4 +5,6 @@ services:
     build: .
     environment:
       PUSHBULLET_API_KEY: ${PUSHBULLET_API_KEY}
+    volumes: 
+      - ${PWD}/OLD:/usr/src/app/OLD
     restart: unless-stopped

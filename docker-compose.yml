@@ -6,5 +6,5 @@ services:
     environment:
       PUSHBULLET_API_KEY: ${PUSHBULLET_API_KEY}
     volumes: 
-      - ${PWD}/OLD:/usr/src/app/OLD
+      - ${PWD}/tempfiles:/usr/src/app/tempfiles
     restart: unless-stopped

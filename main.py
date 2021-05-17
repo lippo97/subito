@@ -20,7 +20,7 @@ SEARCH=f'gtx {NUMBER}'
 MIN_PRICE=100
 MAX_PRICE=250
 QUERY_STRING=f'{BASE_URL}?q={"+".join(SEARCH.split())}&ps={MIN_PRICE}&pe={MAX_PRICE}'
-OLD_FILE='OLD'
+OLD_FILE='tempfiles/OLD'
 
 s = requests.Session()
 s.mount('https://', HTTPAdapter(max_retries=0))

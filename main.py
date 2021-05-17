@@ -10,7 +10,7 @@ from announcer import Announcer
 from pushbullet import Pushbullet
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logging.basicConfig(level=logging.INFO, format=formatter)
+logging.basicConfig(level=logging.INFO)
 logging.root.handlers[0].setFormatter(formatter)
 
 
